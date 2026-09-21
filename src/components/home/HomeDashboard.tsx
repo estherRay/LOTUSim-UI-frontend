@@ -81,7 +81,11 @@ export const HomeDashboard: React.FC = () => {
    * @param newData - Array of `VesselPosition` objects received.
    */
   const updateVesselPosition = (newData: VesselPosition[]) => {
-    setVesselPosition(new Map(newData.map((v) => [v.vesselName, v])));
+    setVesselPosition((prevPositions) => {
+      const next = new Map(prevPositions);
+      newData.forEach((v) => next.set(v.vesselName, v));
+      return next;
+    });
 
     setTrails((prev) => {
       const next = new Map(prev);
@@ -93,6 +97,14 @@ export const HomeDashboard: React.FC = () => {
       });
       return next;
     });
+  };
+
+  /**
+   * Clear trail of a deleted vessel
+   */
+  const handleSimulationCleared = () => {
+    setVesselPosition(new Map());
+    setTrails(new Map());
   };
 
   /**
@@ -183,7 +195,10 @@ export const HomeDashboard: React.FC = () => {
     try {
       const ok = await sendMASCommand(selectedInstance, cmd);
       if (!ok) showError(`Failed to delete vessel: ${vessel_name}`);
-      else setTrails((prev) => { const next = new Map(prev); next.delete(vessel_name); return next; });
+      else {
+        setTrails((prev) => { const next = new Map(prev); next.delete(vessel_name); return next; });
+        setVesselPosition((prev) => { const next = new Map(prev); next.delete(vessel_name); return next; });
+      }
     } catch (err) {
       showError(err instanceof Error ? err.message : `Failed to delete vessel: ${vessel_name}`);
     }
@@ -201,6 +216,7 @@ export const HomeDashboard: React.FC = () => {
           setSelectedInstance={setSelectedInstance}
           vesselPositions={VesselPosition}
           onFlyTo={setFlyTo}
+          onClear={handleSimulationCleared}
         />
 
         <Box sx={{ flexGrow: 1 }}>
