@@ -72,6 +72,9 @@ export const HomeDashboard: React.FC = () => {
   const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
   const { showError } = useToast();
 
+  const MAX_TRAIL_POINTS = 50;
+  const [trails, setTrails] = useState<Map<string, [number, number][]>>(new Map());
+
   /**
    * Updates the vessel data state when new data is received from the WebSocket.
    *
@@ -79,6 +82,17 @@ export const HomeDashboard: React.FC = () => {
    */
   const updateVesselPosition = (newData: VesselPosition[]) => {
     setVesselPosition(new Map(newData.map((v) => [v.vesselName, v])));
+
+    setTrails((prev) => {
+      const next = new Map(prev);
+      newData.forEach((v) => {
+        if (v.geoPoint?.latitude == null || v.geoPoint?.longitude == null) return;
+        const point: [number, number] = [v.geoPoint.latitude, v.geoPoint.longitude];
+        const existing = next.get(v.vesselName) ?? [];
+        next.set(v.vesselName, [...existing, point].slice(-MAX_TRAIL_POINTS));
+      });
+      return next;
+    });
   };
 
   /**
@@ -169,6 +183,7 @@ export const HomeDashboard: React.FC = () => {
     try {
       const ok = await sendMASCommand(selectedInstance, cmd);
       if (!ok) showError(`Failed to delete vessel: ${vessel_name}`);
+      else setTrails((prev) => { const next = new Map(prev); next.delete(vessel_name); return next; });
     } catch (err) {
       showError(err instanceof Error ? err.message : `Failed to delete vessel: ${vessel_name}`);
     }
@@ -192,6 +207,7 @@ export const HomeDashboard: React.FC = () => {
           <MapComponent
             {...mapSettings}
             VesselPosition={VesselPosition}
+            trails={trails}
             addVesselFn={spawnVessel}
             removeVesselFn={deleteVessel}
             flyTo={flyTo}
