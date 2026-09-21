@@ -29,7 +29,7 @@ import { Map as MapComponent } from '../map/Map';
 import React, { useState } from 'react';
 import { Box } from '@mui/material';
 import SideBar from './Sidebar';
-import { listScenarios, listInstances, sendMASCommand, saveInstance } from '../../services/api';
+import { listScenarios, listInstances, sendMASCommand, saveInstance, getRunningScenario } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { WebSocketClient } from '../../services/websocketClient';
 import { Agent, MASCmd, VesselPosition } from '../../types';
@@ -47,6 +47,8 @@ import { Agent, MASCmd, VesselPosition } from '../../types';
  * - Establishes and manages a persistent WebSocket connection for live updates.
  * - Allows for spawning vessels on the map.
  */
+
+const MAX_TRAIL_POINTS = 50;
 
 export const HomeDashboard: React.FC = () => {
   // Default map center in singapore port. To change based on scenario
@@ -70,6 +72,9 @@ export const HomeDashboard: React.FC = () => {
   const [selectedInstance, setSelectedInstance] = useState<string>('');
   const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
   const { showError } = useToast();
+  const [selectedScenario, setSelectedScenario] = useState<string>('');
+
+  const [trails, setTrails] = useState<Map<string, [number, number][]>>(new Map());
 
   /**
    * Updates the vessel data state when new data is received from the WebSocket.
@@ -77,7 +82,27 @@ export const HomeDashboard: React.FC = () => {
    * @param newData - Array of `VesselPosition` objects received.
    */
   const updateVesselPosition = React.useCallback((newData: VesselPosition[]) => {
-    setVesselPosition(new Map(newData.map((v) => [v.vesselName, v])));
+    setVesselPosition(new Map(newData.map((v) => [v.vesselName, v]))); 
+
+    setTrails((prev) => {
+      const next = new Map(prev);
+      newData.forEach((v) => {
+        if (v.geoPoint?.latitude == null || v.geoPoint?.longitude == null) return;
+        const point: [number, number] = [v.geoPoint.latitude, v.geoPoint.longitude];
+        const existing = next.get(v.vesselName) ?? [];
+        next.set(v.vesselName, [...existing, point].slice(-MAX_TRAIL_POINTS));
+      });
+      return next;
+    });
+  },[]);
+
+  /**
+   * Clears vessels, trails and the selected scenario after "Clear Simulation".
+   */
+  const handleSimulationCleared = React.useCallback(() => {
+    setVesselPosition(new Map());
+    setTrails(new Map());
+    setSelectedScenario('');
   }, []);
 
   /**
@@ -107,7 +132,15 @@ export const HomeDashboard: React.FC = () => {
   }, [instances, selectedInstance]);
 
   React.useEffect(() => {
-    console.log('selectedInstance ->', selectedInstance, new Error().stack);
+    if (!selectedInstance) {
+      setSelectedScenario('');
+      return;
+    }
+    let cancelled = false;
+    getRunningScenario(selectedInstance)
+      .then((running: string | null) => { if (!cancelled) setSelectedScenario(running ?? ''); })
+      .catch(() => { if (!cancelled) setSelectedScenario(''); });
+    return () => { cancelled = true; };
   }, [selectedInstance]);
 
   React.useEffect(() => {
@@ -127,6 +160,7 @@ export const HomeDashboard: React.FC = () => {
     if (!selectedInstance) return;
     saveInstance(selectedInstance); // before connection, so client uses the right instance
     setVesselPosition(new Map()); // clear vessel data when switching instances
+    setTrails(new Map());
     const ws_client = new WebSocketClient(updateVesselPosition);
     ws_client.connect();
     return () => {
@@ -187,6 +221,10 @@ export const HomeDashboard: React.FC = () => {
     try {
       const ok = await sendMASCommand(selectedInstance, cmd);
       if (!ok) showError(`Failed to delete vessel: ${vessel_name}`);
+      else {
+        setTrails((prev) => { const next = new Map(prev); next.delete(vessel_name); return next; });
+        setVesselPosition((prev) => { const next = new Map(prev); next.delete(vessel_name); return next; });
+      }
     } catch (err) {
       showError(err instanceof Error ? err.message : `Failed to delete vessel: ${vessel_name}`);
     }
@@ -202,14 +240,18 @@ export const HomeDashboard: React.FC = () => {
           instances={instances}
           selectedInstance={selectedInstance}
           setSelectedInstance={setSelectedInstance}
+          selectedScenario={selectedScenario}
+          setSelectedScenario={setSelectedScenario}
           vesselPositions={VesselPosition}
           onFlyTo={setFlyTo}
+          onSimulationCleared={handleSimulationCleared}
         />
 
         <Box sx={{ flexGrow: 1 }}>
           <MapComponent
             {...mapSettings}
             VesselPosition={VesselPosition}
+            trails={trails}
             addVesselFn={spawnVessel}
             removeVesselFn={deleteVessel}
             flyTo={flyTo}

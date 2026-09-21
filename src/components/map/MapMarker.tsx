@@ -55,17 +55,17 @@ const getDomainOutlineColor = (altitude?: number | null): string => {
   return DOMAIN_OUTLINE_COLORS[getDomainFromAltitude(altitude)];
 };
 
-const getVesselFillColor = (key: string): string => {
+const hashToHue = (key: string): number => {
   let hash = 0;
   for (let i = 0; i < key.length; i++) {
     hash = (hash << 5) - hash + key.charCodeAt(i);
     hash |= 0;
   }
-  const hue = Math.abs(hash) % 360;
-  // Fixed saturation/lightness chosen to stay distinguishable from the
-  // white/black/light-blue outline colors while remaining vivid.
-  return `hsl(${hue}, 70%, 45%)`;
+  return Math.abs(hash) % 360;
 };
+
+export const getVesselFillColor = (key: string): string => `hsl(${hashToHue(key)}, 70%, 45%)`;
+export const getVesselTrailColor = (key: string): string => `hsl(${hashToHue(key)}, 70%, 25%)`;
 
 /**
  * VesselMarkerComponent
@@ -91,55 +91,30 @@ export const VesselMarkerComponent: React.FC<{
     const fillColor = getVesselFillColor(vessel.vesselName ?? '');
     const strokeColor = getDomainOutlineColor(vessel.geoPoint?.altitude);
     const strokeWidth = Math.max(2.5, w * 0.3);
-    // Scale sprite background proportionally with icon size so the same arrow cell
-    // stays visible at every zoom level. SPRITE_CELL_W is the arrow's pixel width
-    // in the sprite at the zoom level the original offsets were calibrated for (zoom 15).
-    // const SPRITE_CELL_W = 15.5;
-    // const scale = w / SPRITE_CELL_W;
-    // const bgW = 251 * scale;
-    // const bgH = 175 * scale;
-    // const bgX = -6 * scale;
-    // return divIcon({
-    //   iconSize: [w, h],
-    //   iconAnchor: [w / 2, h / 2],
-    //   popupAnchor: [0, -h / 2],
-    //   className: '',
-    //   html: `<div
-    //           class="blue-arrow-icon"
-    //           style="
-    //             width:${w}px;
-    //             height:${h}px;
-    //             background-image:url('/sprite_medium.png');
-    //             background-position:${bgX}px 0px;
-    //             background-size:${bgW}px ${bgH}px;
-    //             transform: rotate(${(vessel.heading ?? 0)}deg);
-    //             transform-origin: center center;
-    //           ">
-    //         </div>`,
-    // });
+
     const arrowSvg = `
-      <svg
+    <svg
         width="${w}"
         height="${h}"
         viewBox="0 0 100 150"
         xmlns="http://www.w3.org/2000/svg"
-        style="transform: rotate(${(vessel.heading ?? 0)}deg); transform-origin: center center; overflow: visible;"
-      >
-        <path
-          d="M50 0 L90 150 L50 120 L10 150 Z"
-          fill="${fillColor}"
-          stroke="${strokeColor}"
-          stroke-width="${strokeWidth}"
-          stroke-linejoin="round"
-        />
-      </svg>`;
+        style="overflow: visible; transform: rotate(${(vessel.heading ?? 0)}deg); transform-origin: center center;"
+    >
+      <path
+        d="M50 0 L90 150 L50 120 L10 150 Z"
+        fill="${fillColor}"
+        stroke="${strokeColor}"
+        stroke-width="${strokeWidth}"
+        stroke-linejoin="round"
+      />
+    </svg>`;
 
     return divIcon({
       iconSize: [w, h],
       iconAnchor: [w / 2, h / 2],
       popupAnchor: [0, -h / 2],
       className: '',
-      html: `<div class="vessel-icon" style="width:${w}px;height:${h}px;">${arrowSvg}</div>`,
+      html: `<div class="vessel-icon" style="width:${w}px;height:${h}px;overflow:visible;">${arrowSvg}</div>`,
     });
   }, [zoomLevel, vessel.heading, vessel.vesselName, vessel.geoPoint?.altitude]);
 
