@@ -244,7 +244,10 @@ export const HomeDashboard: React.FC = () => {
           setSelectedScenario={setSelectedScenario}
           vesselPositions={VesselPosition}
           onFlyTo={setFlyTo}
-          onSimulationCleared={handleSimulationCleared}
+          onClear={() => {
+            handleSimulationCleared();
+            setSelectedScenario('');
+          }}
         />
 
         <Box sx={{ flexGrow: 1 }}>
