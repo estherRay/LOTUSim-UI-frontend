@@ -226,7 +226,7 @@ const SideBar: React.FC<SideBarProps> = ({
         Save Address
       </Button>
 
-      <Box sx={{ height: 20 }} />
+      <Box sx={{ height: 2 }} />
 
       <FormControl fullWidth>
         <InputLabel id="scenario-select-label">Launch Scenario</InputLabel>
@@ -270,7 +270,7 @@ const SideBar: React.FC<SideBarProps> = ({
         </Button>
       </Box>
 
-      <Box sx={{ height: 20 }} />
+      <Box sx={{ height: 2 }} />
 
       <Divider sx={{ width: '100%' }} />
 
