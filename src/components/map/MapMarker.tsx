@@ -62,7 +62,7 @@ const formatCoordinate = (value?: number | null): string => {
 
 const formatAltitude = (value?: number | null): string => {
   if (value == null) return 'N/A';
-  return `${value >= 0 ? '+' : ''}${value.toFixed(3)}`;
+  return `${value >= 0 ? '+' : ''}${value.toFixed(3)}m`;
 };
 
 const hashToHue = (key: string): number => {
