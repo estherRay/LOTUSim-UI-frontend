@@ -61,6 +61,8 @@ interface SideBarProps {
   instances: string[];
   selectedInstance: string;
   setSelectedInstance: (instance: string) => void;
+  selectedScenario: string;
+  setSelectedScenario: (scenario: string) => void;
   vesselPositions: Map<string, VesselPosition>;
   onFlyTo: (coords: [number, number]) => void;
   onClear?: () => void;
@@ -77,18 +79,21 @@ interface SideBarProps {
  * @param instances - Array of available instance names.
  * @param selectedInstance - Currently selected instance.
  * @param setSelectedInstance - Callback to update the selected instance.
- *
+ * @param selectedScenario - Currently selected scenario.
+ * @param setSelectedScenario - Callback to update the selected scenario.
  */
 const SideBar: React.FC<SideBarProps> = ({
   scenarios,
   instances,
   selectedInstance,
   setSelectedInstance,
+  selectedScenario,
+  setSelectedScenario,
   vesselPositions,
   onFlyTo,
   onClear,
 }) => {
-  const [selectedScenario, setSelectedScenario] = useState<string>('');
+  // const [selectedScenario, setSelectedScenario] = useState<string>('');  // comes rom HomeDashboard now
   const [ip, setIp] = useState<string>(getAddress().ip);
   const [port, setPort] = useState<number>(getAddress().port);
   const [mobileOpen, setMobileOpen] = useState(false);
