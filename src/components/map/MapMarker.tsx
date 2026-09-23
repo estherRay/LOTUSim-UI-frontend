@@ -55,6 +55,16 @@ const getDomainOutlineColor = (altitude?: number | null): string => {
   return DOMAIN_OUTLINE_COLORS[getDomainFromAltitude(altitude)];
 };
 
+const formatCoordinate = (value?: number | null): string => {
+  if (value == null) return 'N/A';
+  return `${value >= 0 ? '+' : ''}${value.toFixed(3)}°`;
+};
+
+const formatAltitude = (value?: number | null): string => {
+  if (value == null) return 'N/A';
+  return `${value >= 0 ? '+' : ''}${value.toFixed(3)}`;
+};
+
 const hashToHue = (key: string): number => {
   let hash = 0;
   for (let i = 0; i < key.length; i++) {
@@ -122,16 +132,16 @@ export const VesselMarkerComponent: React.FC<{
 
   return (
     <Marker position={[vessel.geoPoint.latitude, vessel.geoPoint.longitude]} icon={customIcon}>
-      <Popup>
+      <Popup minWidth={220} maxWidth={220}>
         <strong>Vessel: {vessel.vesselName}</strong>
         <br />
-        Latitude: {vessel.geoPoint.latitude}
+        Latitude: {formatCoordinate(vessel.geoPoint.latitude)}
         <br />
-        Longitude: {vessel.geoPoint.longitude}
+        Longitude: {formatCoordinate(vessel.geoPoint.longitude)}
         <br />
-        Altitude: {vessel.geoPoint.altitude}
+        Altitude: {formatAltitude(vessel.geoPoint.altitude)}
         <br />
-        Heading: {vessel.heading}
+        Heading: {formatCoordinate(vessel.heading)}
         <br />
         {onRemove && (
           <button

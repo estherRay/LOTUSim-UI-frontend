@@ -299,9 +299,12 @@ const SideBar: React.FC<SideBarProps> = ({
             const hasCoords = lat !== undefined && lng !== undefined;
             const isExpanded = expandedVessel === name;
 
-            // TODO: wire real sensor + power/battery data 
-            const sensors: string[] = [];
-            const powerProviders: { name: string; type: string; soc: number }[] = [];
+            const sensors = vessel.sensors ?? [];
+            const powerProviders = (vessel.power?.providers ?? []).map((p) => ({
+              name: p.name,
+              type: p.type,
+              soc: p.soc * 100, // convert 0–1 fraction to a 0–100 percentage for display
+            }));
 
             return (
               <Box key={name} sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -364,8 +367,8 @@ const SideBar: React.FC<SideBarProps> = ({
                         </Typography>
                       ) : (
                         sensors.map((s) => (
-                          <Typography key={s} variant="caption" sx={{ display: 'block' }}>
-                            {s}
+                          <Typography key={s.name} variant="caption" sx={{ display: 'block' }}>
+                            {s.name} ({s.type})
                           </Typography>
                         ))
                       )}
