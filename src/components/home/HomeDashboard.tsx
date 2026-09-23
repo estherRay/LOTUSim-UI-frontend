@@ -29,7 +29,7 @@ import { Map as MapComponent } from '../map/Map';
 import React, { useState, useRef } from 'react';
 import { Box } from '@mui/material';
 import SideBar from './Sidebar';
-import { listScenarios, listInstances, sendMASCommand, saveInstance } from '../../services/api';
+import { listScenarios, listInstances, sendMASCommand, saveInstance, getRunningScenario } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { WebSocketClient } from '../../services/websocketClient';
 import { Agent, MASCmd, VesselPosition } from '../../types';
@@ -71,6 +71,7 @@ export const HomeDashboard: React.FC = () => {
   const [selectedInstance, setSelectedInstance] = useState<string>('lotusim');
   const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
   const { showError } = useToast();
+  const [selectedScenario, setSelectedScenario] = useState<string>('');
 
   const MAX_TRAIL_POINTS = 50;
   const [trails, setTrails] = useState<Map<string, [number, number][]>>(new Map());
@@ -119,6 +120,8 @@ export const HomeDashboard: React.FC = () => {
       // Temp placeholder until instances feature is created
       setSelectedInstance('lotusim');
       saveInstance('lotusim');
+      const runningScenario = await getRunningScenario('lotusim');
+      setSelectedScenario(runningScenario ?? '');
     } catch (_err) {
       console.error('Error getting instance or scenario');
     }
@@ -214,9 +217,14 @@ export const HomeDashboard: React.FC = () => {
           instances={instances}
           selectedInstance={selectedInstance}
           setSelectedInstance={setSelectedInstance}
+          selectedScenario={selectedScenario}
+          setSelectedScenario={setSelectedScenario}
           vesselPositions={VesselPosition}
           onFlyTo={setFlyTo}
-          onClear={handleSimulationCleared}
+          onClear={() => {
+            handleSimulationCleared();
+            setSelectedScenario('');
+          }}
         />
 
         <Box sx={{ flexGrow: 1 }}>
