@@ -132,33 +132,50 @@ export const VesselMarkerComponent: React.FC<{
 
   return (
     <Marker position={[vessel.geoPoint.latitude, vessel.geoPoint.longitude]} icon={customIcon}>
-      <Popup minWidth={220} maxWidth={220}>
-        <strong>Vessel: {vessel.vesselName}</strong>
-        <br />
-        Latitude: {formatCoordinate(vessel.geoPoint.latitude)}
-        <br />
-        Longitude: {formatCoordinate(vessel.geoPoint.longitude)}
-        <br />
-        Altitude: {formatAltitude(vessel.geoPoint.altitude)}
-        <br />
-        Heading: {formatCoordinate(vessel.heading)}
-        <br />
-        {onRemove && (
-          <button
-            onClick={() => onRemove(vessel.vesselName)}
-            style={{
-              marginTop: 6,
-              color: 'red',
-              background: 'none',
-              border: '1px solid red',
-              borderRadius: 4,
-              cursor: 'pointer',
-              padding: '2px 8px',
-            }}
-          >
-            Remove
-          </button>
-        )}
+      <Popup minWidth={200} maxWidth={200}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '80px 1fr',
+            rowGap: '4px',
+            alignItems: 'baseline',
+          }}
+        >
+          <strong style={{ gridColumn: '1 / -1', marginBottom: '4px' }}>
+            Vessel: {vessel.vesselName}
+          </strong>
+
+          <span>Latitude:</span>
+          <span>{formatCoordinate(vessel.geoPoint.latitude)}</span>
+
+          <span>Longitude:</span>
+          <span>{formatCoordinate(vessel.geoPoint.longitude)}</span>
+
+          <span>Altitude:</span>
+          <span>{formatAltitude(vessel.geoPoint.altitude)}</span>
+
+          <span>Heading:</span>
+          <span>{formatCoordinate(vessel.heading)}</span>
+
+          {onRemove && (
+            <button
+              onClick={() => onRemove(vessel.vesselName)}
+              style={{
+                gridColumn: '1 / -1',
+                marginTop: 6,
+                width: 'fit-content',
+                color: 'red',
+                background: 'none',
+                border: '1px solid red',
+                borderRadius: 4,
+                cursor: 'pointer',
+                padding: '2px 8px',
+              }}
+            >
+              Remove
+            </button>
+          )}
+        </div>
       </Popup>
     </Marker>
   );
