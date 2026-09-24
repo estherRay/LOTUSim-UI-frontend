@@ -47,7 +47,6 @@ import { VesselMarkerComponent } from './MapMarker';
 import { AddVesselMenu } from './addVessel';
 import { MapContextMenu } from './MapContextMenu';
 import { WaypointMapLayer } from './WaypointMapLayer';
-import { LogPanel } from '../home/LogPanel';
 import 'leaflet/dist/leaflet.css';
 import '../../App.css';
 
@@ -442,7 +441,6 @@ export const Map = forwardRef<MapHandle, MapProps>(({
           {mouseCoords.lat.toFixed(6)}, {(((mouseCoords.lng % 360) + 540) % 360 - 180).toFixed(6)}
         </div>
       )}
-      <LogPanel logs={[]} /> {/* wire real logs prop once backend forwards them */}
     </div>
   );
 });
