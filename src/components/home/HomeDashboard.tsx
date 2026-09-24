@@ -32,7 +32,8 @@ import SideBar from './Sidebar';
 import { listScenarios, listInstances, sendMASCommand, saveInstance, getRunningScenario } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { WebSocketClient } from '../../services/websocketClient';
-import { Agent, MASCmd, VesselPosition } from '../../types';
+import { Agent, LogEntry, LogWebSocketMessage, MASCmd, VesselPosition } from '../../types';
+import { LogPanel } from './LogPanel';
 
 /**
  * HomeDashboard Component
@@ -71,6 +72,7 @@ export const HomeDashboard: React.FC = () => {
 
   const [selectedInstance, setSelectedInstance] = useState<string>('');
   const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const { showError } = useToast();
   const [selectedScenario, setSelectedScenario] = useState<string>('');
 
@@ -157,12 +159,25 @@ export const HomeDashboard: React.FC = () => {
 
   // Websocket is persistent
   React.useEffect(() => {
+<<<<<<< HEAD
     if (!selectedInstance) return;
     saveInstance(selectedInstance); // before connection, so client uses the right instance
     setVesselPosition(new Map()); // clear vessel data when switching instances
     setTrails(new Map());
     const ws_client = new WebSocketClient(updateVesselPosition);
     ws_client.connect();
+=======
+    fetchData();
+    if (!ws_client.current) {
+      ws_client.current = new WebSocketClient(
+        updateVesselPosition,
+        (logMessage: LogWebSocketMessage) => {
+          setLogs((prev) => [...prev, logMessage.log].slice(-200));
+        },
+      );
+      ws_client.current.connect();
+    }
+>>>>>>> 43b037e (frontend now has a working log panel on the right side)
     return () => {
       ws_client.disconnect();
     };
@@ -260,6 +275,7 @@ export const HomeDashboard: React.FC = () => {
             flyTo={flyTo}
           />
         </Box>
+        <LogPanel logs={logs} />
       </div>
     </div>
   );
