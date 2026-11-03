@@ -37,8 +37,6 @@ const DOMAIN_OUTLINE_COLORS: Record<string, string> = {
   underwater: '#800080',   // underwater
 } as const;
 
-const DEFAULT_OUTLINE_COLOR = '#888888'; // fallback if domain is missing/unrecognized
-
 type VesselDomain = keyof typeof DOMAIN_OUTLINE_COLORS;
 
 const UNDERWATER_THRESHOLD = -10;

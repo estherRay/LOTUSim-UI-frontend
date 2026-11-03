@@ -29,6 +29,8 @@ const defaultProps = {
   instances: ['lotusim'],
   selectedInstance: 'lotusim',
   setSelectedInstance: vi.fn(),
+  selectedScenario: '',
+  setSelectedScenario: vi.fn(), 
   vesselPositions: new Map<string, VesselPosition>(),
   onFlyTo: vi.fn(),
 };
