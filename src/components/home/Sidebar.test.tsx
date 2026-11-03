@@ -99,14 +99,14 @@ describe('SideBar – existing controls', () => {
     expect(screen.getByText('lotusim')).toBeInTheDocument();
   });
 
-  it('renders "Launch Scenario" button', () => {
+  it('renders "Launch" button', () => {
     render(<SideBar {...defaultProps} />);
-    expect(screen.getByRole('button', { name: 'Launch Scenario' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Launch' })).toBeInTheDocument();
   });
 
-  it('renders "Clear Simulation" button', () => {
+  it('renders "Clear" button', () => {
     render(<SideBar {...defaultProps} />);
-    expect(screen.getByRole('button', { name: 'Clear Simulation' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
   });
 
   it('renders instance dropdown label', () => {
