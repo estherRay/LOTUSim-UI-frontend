@@ -11,14 +11,23 @@
  * 
  */
 import React, { useState } from 'react';
-import { LogEntry } from '../../types';
+import { DiagnosticLog, DiagnosticStatusLevel, Time } from '../../types';
 import { Box, Typography, Paper, useTheme } from '@mui/material';
 
 interface LogPanelProps {
-  logs: LogEntry[];
+  logs: DiagnosticLog[];
+  onClear: () => void;
 }
 
-export const LogPanel: React.FC<LogPanelProps> = ({ logs }) => {
+const formatStamp = (stamp: Time): string =>
+  new Date(stamp.sec * 1000 + Math.floor(stamp.nanosec / 1e6)).toLocaleTimeString();
+
+const LEVEL_DATA: Record<number, { label: string; color: string }> = {
+  [DiagnosticStatusLevel.OK]: { label: 'OK', color: '#4ade80' },
+  [DiagnosticStatusLevel.ERROR]: { label: 'ERROR', color: '#f87171' },
+};
+
+export const LogPanel: React.FC<LogPanelProps> = ({ logs, onClear }) => {
   const [isOpen, setIsOpen] = useState(false);
   const theme = useTheme();
 
@@ -67,9 +76,36 @@ export const LogPanel: React.FC<LogPanelProps> = ({ logs }) => {
             fontSize: 10,
           }}
         >
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-            LOTUSim Log
-          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 1,
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+              LOTUSim Log
+            </Typography>
+            <Box
+              onClick={onClear}
+              sx={{
+                cursor: logs.length === 0 ? 'default' : 'pointer',
+                opacity: logs.length === 0 ? 0.4 : 1,
+                pointerEvents: logs.length === 0 ? 'none' : 'auto',
+                px: 1,
+                py: 0.25,
+                fontSize: 11,
+                borderRadius: 1,
+                border: '1px solid #94a3b8',
+                color: '#94a3b8',
+                userSelect: 'none',
+                '&:hover': { color: '#e2e8f0', borderColor: '#e2e8f0' },
+              }}
+            >
+              Clear
+            </Box>
+          </Box>
           {logs.length === 0 ? (
             <Typography
               variant="caption"
@@ -78,20 +114,28 @@ export const LogPanel: React.FC<LogPanelProps> = ({ logs }) => {
               No log messages yet
             </Typography>
           ) : (
-            logs.map((log, i) => (
-              <Box
-                key={i}
-                sx={{
-                  whiteSpace: 'pre-wrap',
-                  marginBottom: '6px',
-                  fontSize: '12px',
-                  lineHeight: 1.3,
-                }}
-              >
-                [{log.level.toUpperCase()}] [{log.logger}]
-                {log.message}
-              </Box>
-            ))
+            logs.map((log, i) =>  {
+              const data = LEVEL_DATA[log.status.level] ?? {
+                label: String(log.status.level),
+                color: '#e2e8f0',
+              };
+              return (
+                <Box
+                  key={i}
+                  sx={{
+                    whiteSpace: 'pre-wrap',
+                    marginBottom: '6px',
+                    fontSize: '12px',
+                    lineHeight: 1.3,
+                  }}
+                >
+                  <span style={{ color: '#94a3b8' }}>{formatStamp(log.stamp)} </span>
+                  <span style={{ color: data.color, fontWeight: 'bold' }}>[{data.label}]</span>{' '}
+                  <span style={{ color: '#94a3b8' }}>[{log.status.name}]</span>{' '}
+                  {log.status.message}
+                </Box>
+              );
+            })
           )}
         </Box>
       )}
